@@ -4,11 +4,13 @@ import pickle
 import _pickle as cPickle
 
 def word_count(fname):
+    nb_page = 0
     counts = dict()
     step = 3
     with open(fname) as handle:
         for lineno, line in enumerate(handle):
             if lineno % step == 0:
+                nb_page += 1
                 words = line.split()
                 for word in words:
                     if word in counts:
@@ -16,13 +18,14 @@ def word_count(fname):
                     else:
                         counts[word] = 1
     counts_sorted = dict(sorted(counts.items(), key=lambda x: x[1], reverse=True))
-    return counts_sorted
+    return counts_sorted, nb_page
 
-def index(filename, lst):
+def index(filename, lst, nb_page):
     lst = set(lst)
+    # idf = {} # dictionnaire qui associe un mot à son idf : {word : idf(word)}
     word_page = {} #  dictionnaire qui représente la relation mot-page : {word : {page : tf(word,page)}}
-    page_word =  {} # dictionnaire qui associe à chaque page, l'ensemble des mots y apparaissant et appartenant à lst: {page : [word]}
-    page_norm = {} # dictionnaire qui associe à chaque page sa norme: {page : norm Nd}
+    page_word =  {} # dictionnaire qui associe à chaque page, l'ensemble des mots y apparaissant et appartenant à lst: {page : [word]}, used to compute norm (q8.2)
+    page_norm = {} # dictionnaire qui associe à chaque page sa norme: {page : norm Nd}, used to store the pages' norm
     with open(filename, 'r') as fobj:
         for lineno, line in enumerate(fobj, 1):
             if lineno % 4 == 0:
@@ -49,22 +52,26 @@ def index(filename, lst):
                     for page_key in word_page[word_key].keys(): # for each page containing said word
                         word_page[word_key][page_key] = 1 + m.log10(word_page[word_key][page_key]) 
 
-        # print(word_page)
         # Compute vector norm as defined in TP1, Exercice 8.2
-        # print(page_word)
-        # print("----------")
         for key, val in page_word.items():
             res = 0
             for word in val:
-                # print(word, ", ", key, ", ",word_page[word])
                 res += word_page[word][key]**2
-            if res < 0:
-                print(f"RES NEGATIF : {res}")
             page_norm[key] = m.sqrt(res)
         
         for word, val in word_page.items():
             for page in val.keys():
                 word_page[word][page] /= page_norm[page]
+        
+        # Compute IDF as defined in TP1, Exercice 3
+        for word, val in word_page.items():
+            idf = nb_page / len(val)
+            for page in val.keys():
+                word_page[word][page] *= idf
+                # if word_page[word][page] < 10: # threshold to modify
+                #     del word_page[word][key]
+
+
 
     with open('data/data.pickle', 'wb') as f:
         # Pickle the 'data' dictionary using the highest protocol available.
@@ -77,10 +84,10 @@ def index(filename, lst):
 
 # COMPUTE WORD PAGE DICTIONARY
 
-x = word_count("data/test.xml")
+x, nb_page = word_count("data/wikiprocess.xml")
 y = list(x.keys())
 # word_page, page_word, page_norm = index("data/test.xml",y)
-word_page = index("data/test.xml",y)
+word_page = index("data/wikiprocess.xml",y, nb_page)
 print(word_page)
 
 
