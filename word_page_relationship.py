@@ -1,15 +1,17 @@
 import math as m
 from collections import Counter
 import pickle
-import _pickle as cPickle
+import time
 
-def word_count(fname):
+def word_count(filename):
     nb_page = 0
     counts = dict()
-    step = 3
-    with open(fname) as handle:
-        for lineno, line in enumerate(handle):
-            if lineno % step == 0:
+    step = 5
+    with open(filename, 'r') as file:
+        for line_nb, line in enumerate(file, 1):
+            if line_nb % 97583 == 0:
+                print(f"{(line_nb / 975385) * 100} % (word count)")
+            if line_nb % step == 0:
                 nb_page += 1
                 words = line.split()
                 for word in words:
@@ -17,19 +19,21 @@ def word_count(fname):
                         counts[word] += 1
                     else:
                         counts[word] = 1
-    counts_sorted = dict(sorted(counts.items(), key=lambda x: x[1], reverse=True))
-    return counts_sorted, nb_page
+    counts_sorted = sorted(counts.items(), key=lambda x: x[1], reverse=True)
+    return dict(counts_sorted[:20000]), nb_page
 
 def index(filename, lst, nb_page):
     lst = set(lst)
-    # idf = {} # dictionnaire qui associe un mot à son idf : {word : idf(word)}
     word_page = {} #  dictionnaire qui représente la relation mot-page : {word : {page : tf(word,page)}}
     page_word =  {} # dictionnaire qui associe à chaque page, l'ensemble des mots y apparaissant et appartenant à lst: {page : [word]}, used to compute norm (q8.2)
     page_norm = {} # dictionnaire qui associe à chaque page sa norme: {page : norm Nd}, used to store the pages' norm
-    with open(filename, 'r') as fobj:
-        for lineno, line in enumerate(fobj, 1):
-            if lineno % 4 == 0:
-                page_id = lineno//4
+    step = 5
+    with open(filename, 'r') as file:
+        for line_nb, line in enumerate(file, 1):
+            if line_nb % 9758 == 0:
+                print(f"{(line_nb / 975385) * 100} % (index)")
+            if line_nb % step == 0:
+                page_id = line_nb//step
                 words = line.split()
 
                 for word in words: # Compute number of occurence and update word page relation
@@ -55,19 +59,16 @@ def index(filename, lst, nb_page):
         # Compute vector norm as defined in TP1, Exercice 8.2
         for key, val in page_word.items():
             res = 0
+            
             for word in val:
                 res += word_page[word][key]**2
             page_norm[key] = m.sqrt(res)
-        
-        for word, val in word_page.items():
-            for page in val.keys():
-                word_page[word][page] /= page_norm[page]
-        
-        # Compute IDF as defined in TP1, Exercice 3
+
+        # Compute IDF as defined in TP1, Exercice 3, as well as formule Exercice 8.4
         for word, val in word_page.items():
             idf = nb_page / len(val)
             for page in val.keys():
-                word_page[word][page] *= idf
+                word_page[word][page] *= idf / page_norm[page]
                 # if word_page[word][page] < 10: # threshold to modify
                 #     del word_page[word][key]
 
@@ -83,12 +84,12 @@ def index(filename, lst, nb_page):
 
 
 # COMPUTE WORD PAGE DICTIONARY
-
-x, nb_page = word_count("data/wikiprocess.xml")
-y = list(x.keys())
-# word_page, page_word, page_norm = index("data/test.xml",y)
-word_page = index("data/wikiprocess.xml",y, nb_page)
+t1 = time.time()
+word_occurence, nb_page = word_count("data/wikiprocess100.txt")
+words = list(word_occurence.keys())
+word_page = index("data/wikiprocess100.txt",words, nb_page)
 print(word_page)
+print(time.time() - t1)
 
 
 
