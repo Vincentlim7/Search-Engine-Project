@@ -15,22 +15,25 @@ class CLI_Matrix():
             self.I = []
             with open(param, 'r') as file:
                 for line_nb, line in enumerate(file, 1):
+                    if line_nb % 97583 == 0:
+                            print(f"{(line_nb / 975385) * 100} % (CLI)")
                     if line_nb % 5 == 4:
                         # retrieve links (page id)
                         links = line.split()
                         links = [int(id)-1 for id in links] # minus 1 since page id starts at 1
 
-                        # Update C matrix (value)
                         nb_links = len(links)
-                        C_bis = [1/nb_links] * nb_links
-                        self.C.extend(C_bis)
+
+                        if nb_links != 0: # if page has links
+                            # Update C matrix (value)
+                            C_bis = [1/nb_links] * nb_links
+                            self.C.extend(C_bis)
+
+                            # Update I matrix (col)
+                            self.I.extend(sorted(links))
 
                         # Update L matrix (row)
                         self.L.append(len(self.C)) # an entire row of the matrix has been processed, so the next value is in a new row
-
-                        # Update I matrix (col)
-                        # sorted_links = sorted(links)
-                        self.I.extend(sorted(links))
             with open('data/CLI_Matrix.pickle', 'wb') as f:
                 # Pickle the 'data' dictionary using the highest protocol available.
                 pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
@@ -68,8 +71,7 @@ class CLI_Matrix():
 # print(mat.I)
 # print("\n ----------- \n")
 
-# mat = CLI_Matrix("data/test.txt")
-# print(mat.C)
-# print(mat.L)
-# print(mat.I)
-# print("\n ----------- \n")
+mat = CLI_Matrix("data/wiki_process.txt")
+print(f"len of C : {len(mat.C)}")
+print(f"len of L : {len(mat.L)}")
+print(f"len of I : {len(mat.I)}")
