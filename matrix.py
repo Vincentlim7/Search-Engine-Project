@@ -71,7 +71,12 @@ class CLI_Matrix():
 # print(mat.I)
 # print("\n ----------- \n")
 
-mat = CLI_Matrix("data/wiki_process.txt")
-print(f"len of C : {len(mat.C)}")
-print(f"len of L : {len(mat.L)}")
-print(f"len of I : {len(mat.I)}")
+
+
+
+# Create CLI Matrix on page corpus
+
+# mat = CLI_Matrix("data/wikiprocess.txt")
+# print(f"len of C : {len(mat.C)}") # 6 159 228
+# print(f"len of L : {len(mat.L)}") # 195 078
+# print(f"len of I : {len(mat.I)}") # 6 159 228
