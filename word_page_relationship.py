@@ -3,7 +3,10 @@ from collections import Counter
 import pickle
 import time
 from itertools import islice
-from collections import defaultdict
+from collections import defaultdict, Counter
+
+total_lines = 975385
+tenth_lines = total_lines // 10
 
 def word_count(filename):
     """
@@ -18,75 +21,67 @@ def word_count(filename):
         number: number of pages
     """
     nb_page = 0
-    counts = dict()
     step = 5
+    counts = Counter()
+    
     with open(filename, 'r') as file:
-        # for line in islice(file, 4, None, 5): # same efficiency
-        for line_nb, line in enumerate(file, 1):
-            if line_nb % 97583 == 0:
-                print(f"{(line_nb / 975385) * 100} % (word count)")
-            if line_nb % step == 0:
-                nb_page += 1
-                words = line.split()
-                for word in words:
-                    if word in counts:
-                        counts[word] += 1
-                    else:
-                        counts[word] = 1
-    counts_sorted = sorted(counts.items(), key=lambda x: x[1], reverse=True)
-    return dict(counts_sorted[:20000]), nb_page
+        for line in islice(file, 4, None, step):
+            nb_page += 1
+            words = line.split()
+            counts.update(words)
+            if nb_page % tenth_lines == 0:
+                print(f"word_count() has processed {(nb_page/tenth_lines)*100:.2f}% of the file")
+            
+    return dict(counts.most_common(20000)), nb_page
 
-
+def default_dict():
+    """
+    Without this function, the declaration
+    word_page = defaultdict(lambda: defaultdict(int))
+    in index()
+    will provoke
+    AttributeError: Can't pickle local object 'index.<locals>.<lambda>'
+    at
+    pickle.dump(word_page, f, pickle.HIGHEST_PROTOCOL)
+    """
+    return defaultdict(int)
 
 def index(filename, keywords, nb_page):
-    # def compute_tf_idf(word_page, page_norm, nb_page):
-    #     for word, pages in word_page.items():
-    #         idf = m.log10(nb_page / len(pages))
-    #         for page, freq in pages.items():
-    #             tf = 1 + m.log10(freq)
-    #             tf_idf = tf * idf / page_norm[page]
-    #             word_page[word][page] = tf_idf
-    # def default_dict():
-    #     """
-    #     Without this function, the declaration
-    #     word_page = defaultdict(lambda: defaultdict(int))
-    #     in index()
-    #     will provoke
-    #     AttributeError: Can't pickle local object 'index.<locals>.<lambda>'
-    #     at
-    #     pickle.dump(word_page, f, pickle.HIGHEST_PROTOCOL)
-    #     """
-    #     return defaultdict(int)
     keywords = set(keywords)
-    word_page = defaultdict(defaultdict(int)) #  dictionnaire qui représente la relation mot-page : {word : {page : tf(word,page)}}
+    word_page = defaultdict(default_dict) #  dictionnaire qui représente la relation mot-page : {word : {page : tf(word,page)}}
     page_word = {page_id: set() for page_id in range(1, nb_page+1)} # use set() instead of list, much faster to check if element is inside
     page_norm = {} # dictionnaire qui associe à chaque page sa norme: {page : norm Nd}, used to store the pages' norm
     step = 5
-
-
+    page_id = 0
+    processed_lines = 0
 
     with open(filename, 'r') as file:
-        for line_nb, line in enumerate(file, 1):
-            if line_nb % 9758 == 0:
-                print(f"{(line_nb / 975385) * 100} % (index)")
-            if line_nb % step == 0:
-                page_id = line_nb//step
-                words = line.split()
+        for line in islice(file, 4, None, step):
+            page_id += 1 
+            words = line.split()
 
-                for word in words: # Compute number of occurence and update word page relation
-                    if word in keywords:
-                        word_page[word][page_id] += 1
-                        page_word[page_id].add(word)
+            for word in words: # Compute number of occurence and update word page relation
+                if word in keywords:
+                    word_page[word][page_id] += 1 # at this point, word_page[word][page_id] contains #occ(word, page)
+                    page_word[page_id].add(word)
 
-                # Compute TF as defined in TP1, Exercice 8.1
-                for word_key in word_page.keys(): # for each word
-                    for page_key in word_page[word_key].keys(): # for each page containing said word
-                        word_page[word_key][page_key] = 1 + m.log10(word_page[word_key][page_key]) 
+            # Compute TF as defined in TP1, Exercice 8.1
+            for word_key in word_page.keys(): # for each word
+                for page_key in word_page[word_key].keys(): # for each page containing said word
+                    word_page[word_key][page_key] = 1 + m.log10(word_page[word_key][page_key]) # Compute TF(word,page) as defined in 8.1
+            
+            processed_lines += step
+            if processed_lines % tenth_lines == 0:
+                print(f"word_count() has processed {(processed_lines/tenth_lines)*100:.2f}% of the file")
 
+        # Compute norm vector as defined in 8.2
+        print("Computing norms")
         for page_id, words in page_word.items():
-            norm = sum((1 + m.log10(word_page[word][page_id]))**2 for word in words)
+            norm = sum(word_page[word][page_id]**2 for word in words)
             page_norm[page_id] = m.sqrt(norm)
 
+        # Compute TF-IDF as defined in 8.4
+        print("Computing TF-IDF")
         for word, pages in word_page.items():
             idf = m.log10(nb_page / len(pages))
             for page, freq in pages.items():
@@ -100,13 +95,11 @@ def index(filename, keywords, nb_page):
     return word_page
 
 
-
-
 # COMPUTE WORD PAGE DICTIONARY
 t1 = time.time()
-word_occurence, nb_page = word_count("data/pages/wikiprocess1000.txt")
+word_occurence, nb_page = word_count("data/pages/wikiprocess100.txt")
 keywords = list(word_occurence.keys())
-word_page = index("data/pages/wikiprocess1000.txt",keywords, nb_page)
+word_page = index("data/pages/wikiprocess100.txt",keywords, nb_page)
 print(word_page)
 print(time.time() - t1)
 
