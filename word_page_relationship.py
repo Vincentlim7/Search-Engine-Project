@@ -10,7 +10,7 @@ tenth_lines = total_lines // 10
 
 def word_count(filename):
     """
-    Count number of occurence of every words in the page corpus.
+    Count the number of occurence of every words in the page corpus.
     Return the most common 20 000 words
 
     Args:
@@ -23,14 +23,15 @@ def word_count(filename):
     nb_page = 0
     step = 5
     counts = Counter()
-    
+    processed_lines = 0
     with open(filename, 'r') as file:
         for line in islice(file, 4, None, step):
-            nb_page += 1
+            nb_page += 1  
             words = line.split()
             counts.update(words)
-            if nb_page % tenth_lines == 0:
-                print(f"word_count() has processed {(nb_page/tenth_lines)*100:.2f}% of the file")
+            processed_lines += step
+            if processed_lines % tenth_lines == 0:
+                print(f"word_count() has processed {(nb_page/total_lines)*100:.2f}% of the file")
             
     return dict(counts.most_common(20000)), nb_page
 
@@ -38,7 +39,7 @@ def default_dict():
     """
     Without this function, the declaration
     word_page = defaultdict(lambda: defaultdict(int))
-    in index()
+    in compute_word_page()
     will provoke
     AttributeError: Can't pickle local object 'index.<locals>.<lambda>'
     at
@@ -46,7 +47,18 @@ def default_dict():
     """
     return defaultdict(int)
 
-def index(filename, keywords, nb_page):
+def compute_word_page(filename, keywords, nb_page):
+    """
+    Compute word-page relationship as defined in TP1
+
+    Args:
+        filename (string): path to file containing the corpus of pages
+        keywords (List<String>): list of desired words for the word-page relationship
+        nb_page (number): number of page in the corpus
+
+    Returns:
+        _type_: _description_
+    """
     keywords = set(keywords)
     word_page = defaultdict(default_dict) #  dictionnaire qui représente la relation mot-page : {word : {page : tf(word,page)}}
     page_word = {page_id: set() for page_id in range(1, nb_page+1)} # use set() instead of list, much faster to check if element is inside
@@ -72,7 +84,7 @@ def index(filename, keywords, nb_page):
             
             processed_lines += step
             if processed_lines % tenth_lines == 0:
-                print(f"word_count() has processed {(processed_lines/tenth_lines)*100:.2f}% of the file")
+                print(f"word_count() has processed {(processed_lines/total_lines)*100:.2f}% of the file")
 
         # Compute norm vector as defined in 8.2
         print("Computing norms")
@@ -97,10 +109,14 @@ def index(filename, keywords, nb_page):
 
 # COMPUTE WORD PAGE DICTIONARY
 t1 = time.time()
-word_occurence, nb_page = word_count("data/pages/wikiprocess100.txt")
+print("Start word_count")
+word_occurence, nb_page = word_count("data/pages/wikiprocess.txt")
+print("word_count done")
 keywords = list(word_occurence.keys())
-word_page = index("data/pages/wikiprocess100.txt",keywords, nb_page)
-print(word_page)
+print("Start compute_word_page")
+word_page = compute_word_page("data/pages/wikiprocess.txt",keywords, nb_page)
+print("compute_word_page done")
+# print(word_page)
 print(time.time() - t1)
 
 # {'gt': 3649138, 'lt': 3620439, 'quot': 3052610, 'avoir': 1456511, 'ref': 1094109, 'football': 1013069,
