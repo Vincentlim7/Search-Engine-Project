@@ -5,8 +5,8 @@ import time
 from itertools import islice
 from collections import defaultdict, Counter
 
-total_lines = 975385
-tenth_lines = total_lines // 10
+total_pages = 195077
+tenth_pages = total_pages // 10
 
 def word_count(filename):
     """
@@ -23,15 +23,13 @@ def word_count(filename):
     nb_page = 0
     step = 5
     counts = Counter()
-    processed_lines = 0
     with open(filename, 'r') as file:
         for line in islice(file, 4, None, step):
             nb_page += 1  
             words = line.split()
             counts.update(words)
-            processed_lines += step
-            if processed_lines % tenth_lines == 0:
-                print(f"word_count() has processed {(nb_page/total_lines)*100:.2f}% of the file")
+            if nb_page % tenth_pages == 0:
+                print(f"word_count() has processed {(nb_page/total_pages)*100:.2f}% of the file")
             
     return dict(counts.most_common(20000)), nb_page
 
@@ -77,15 +75,18 @@ def compute_word_page(filename, keywords, nb_page):
                     word_page[word][page_id] += 1 # at this point, word_page[word][page_id] contains #occ(word, page)
                     page_word[page_id].add(word)
 
-            # Compute TF as defined in TP1, Exercice 8.1
-            for word_key in word_page.keys(): # for each word
-                for page_key in word_page[word_key].keys(): # for each page containing said word
-                    word_page[word_key][page_key] = 1 + m.log10(word_page[word_key][page_key]) # Compute TF(word,page) as defined in 8.1
-            
-            processed_lines += step
-            if processed_lines % tenth_lines == 0:
-                print(f"word_count() has processed {(processed_lines/total_lines)*100:.2f}% of the file")
 
+            processed_lines += 1
+            if processed_lines % tenth_pages == 0:
+                print(f"word_count() has processed {(processed_lines/total_pages)*100:.2f}% of the file")
+
+
+        # Compute TF as defined in TP1, Exercice 8.1
+        print("Computing TF")
+        for word_key in word_page.keys(): # for each word
+            for page_key in word_page[word_key].keys(): # for each page containing said word
+                word_page[word_key][page_key] = 1 + m.log10(word_page[word_key][page_key]) # Compute TF(word,page) as defined in 8.1
+            
         # Compute norm vector as defined in 8.2
         print("Computing norms")
         for page_id, words in page_word.items():
