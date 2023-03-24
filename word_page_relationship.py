@@ -130,3 +130,10 @@ print(time.time() - t1)
 # with open('data/data.pickle', 'rb') as f:
 #     test = pickle.load(f)
 # print(test)
+
+
+
+# def query(words, word_page):
+#     pages = {word: set() for word in words}
+
+#     for word in words:

@@ -18,7 +18,7 @@ def compute_pi(epsilon, C, L, I, V):
     return P
 
 
-def ex3q1(C,L,I,V,k): # k = 200 puis essayer d'autres valeurs
+def page_rank(C,L,I,V,k): # k = 200 puis essayer d'autres valeurs
     epsilon = 1/7
     for _ in range(k):
         V = compute_pi(epsilon, C, L, I, V)
