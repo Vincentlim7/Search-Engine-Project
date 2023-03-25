@@ -192,11 +192,10 @@ class Word_Page_CLI():
         n = len(self.L)-1
         v = v
 
-        iter = 30
+        iter = 190
         err_prev = 0
-
         while iter < max_iter:
-            if iter % 10 == 0:
+            if iter % 50 == 0:
                 print(f"{iter} itérations")
                 with open(f'data/pagerank{iter}.pickle', 'wb') as f:
                     pickle.dump(v, f, pickle.HIGHEST_PROTOCOL)
@@ -215,15 +214,14 @@ class Word_Page_CLI():
 
 # word_page_CLI = Word_Page_CLI("./data/pages/wikiprocess.txt")
 
-with open('data/word_page_CLI.pickle', 'rb') as f:
-    word_page_CLI = pickle.load(f)
-    print(len(word_page_CLI.C))
-    print(len(word_page_CLI.L))
-    print(len(word_page_CLI.I))
+# with open('data/word_page_CLI.pickle', 'rb') as f:
+    # word_page_CLI = pickle.load(f)
+    # print(len(word_page_CLI.C))
+    # print(len(word_page_CLI.L))
+    # print(len(word_page_CLI.I))
 
-
-
-with open('data/page_rank30.pickle', 'rb') as f:
+with open('data/pagerank500.pickle', 'rb') as f:
     page_rank = pickle.load(f)
+    print(sum(page_rank))
 
-print(word_page_CLI.pagerank_compute_best_iterations(page_rank))
+# print(word_page_CLI.pagerank_compute_best_iterations(page_rank))
