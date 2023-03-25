@@ -176,7 +176,7 @@ class Word_Page_CLI():
         with open('data/page_rank.pickle', 'wb') as f:
             pickle.dump(v, f, pickle.HIGHEST_PROTOCOL)
     
-    def pagerank_compute_best_iterations(self, tol=0.001, err=1e-6, max_iter=1000):
+    def pagerank_compute_best_iterations(self, v, tol=0.001, err=1e-6, max_iter=1000):
         """
         Compute the appropriate number of iterations for pagerank according to a tolerance and error thresholds
 
@@ -190,15 +190,15 @@ class Word_Page_CLI():
         """
         epsilon = 1/7
         n = len(self.L)-1
-        v = np.full(n, 1/n)
+        v = v
 
-        iter = 0
+        iter = 30
         err_prev = 0
 
         while iter < max_iter:
             if iter % 10 == 0:
                 print(f"{iter} itérations")
-                with open(f'data/page_rank{iter}.pickle', 'wb') as f:
+                with open(f'data/pagerank{iter}.pickle', 'wb') as f:
                     pickle.dump(v, f, pickle.HIGHEST_PROTOCOL)
             v_next = self.compute_pi(epsilon, v)
             err = np.linalg.norm(v_next - v, 1)
@@ -221,4 +221,9 @@ with open('data/word_page_CLI.pickle', 'rb') as f:
     print(len(word_page_CLI.L))
     print(len(word_page_CLI.I))
 
-# print(word_page_CLI.pagerank_compute_best_iterations())
+
+
+with open('data/page_rank30.pickle', 'rb') as f:
+    page_rank = pickle.load(f)
+
+print(word_page_CLI.pagerank_compute_best_iterations(page_rank))
