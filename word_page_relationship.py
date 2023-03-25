@@ -78,7 +78,7 @@ def compute_word_page(filename, keywords, nb_page):
 
             processed_lines += 1
             if processed_lines % tenth_pages == 0:
-                print(f"word_count() has processed {(processed_lines/total_pages)*100:.2f}% of the file")
+                print(f"compute_word_page() has processed {(processed_lines/total_pages)*100:.2f}% of the file")
 
 
         # Compute TF as defined in TP1, Exercice 8.1
@@ -97,8 +97,7 @@ def compute_word_page(filename, keywords, nb_page):
         print("Computing TF-IDF")
         for word, pages in word_page.items():
             idf = m.log10(nb_page / len(pages))
-            for page, freq in pages.items():
-                tf = 1 + m.log10(freq)
+            for page, tf in pages.items():
                 tf_idf = tf * idf / page_norm[page]
                 word_page[word][page] = tf_idf
 
