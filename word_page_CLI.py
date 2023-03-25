@@ -5,6 +5,7 @@ import time
 from itertools import islice
 from collections import defaultdict, Counter, OrderedDict
 import numpy as np
+import copy as cp
 
 class Word_Page_CLI():
     def __init__(self, filename):
@@ -83,9 +84,9 @@ class Word_Page_CLI():
             processed = 0
             nb_iteration = len(keywords)
             tenth_iteration = nb_iteration // 10
-            idf = []
+            self.idf = []
             for i in self.word_id.values():
-                idf.append(m.log10(self.nb_pages / word_nb_page[i]))  # idf will have the same order as self.word_id since its a OrderedDict 
+                self.idf.append(m.log10(self.nb_pages / word_nb_page[i]))  # idf will have the same order as self.word_id since its a OrderedDict 
                 processed += 1
                 if processed % tenth_iteration == 0:
                         print(f"Computing IDF has processed {(processed/nb_iteration)*100:.2f}% of its iteration")
@@ -99,7 +100,7 @@ class Word_Page_CLI():
             for i in range(len(self.C)): # i is the index of the examined cell in C
                 if i >= self.L[page_id+1]: # i is higher 
                     page_id += 1
-                self.C[i] = self.C[i] * idf[self.I[i]] / page_norm[page_id]
+                self.C[i] = self.C[i] * self.idf[self.I[i]] / page_norm[page_id]
                 processed += 1
                 if processed % tenth_iteration == 0:
                         print(f"Computing TF-IDF has processed {(processed/nb_iteration)*100:.2f}% of its iteration")
@@ -131,6 +132,42 @@ class Word_Page_CLI():
                 
         return set([item[0] for item in counts.most_common(20000)]) # item is a tuple (word, nb_occurence), convert to set because more efficient to test existence
 
+    def simple_query(self, query, p):
+        """
+        Implementation of the simple query defined in Exercice 2 of TP3
+        Compute page ids of pages containing all of the words of the query
+        Args:
+            query (List <String>): list of words
+            p (List <Float>): pagerank
+
+        Returns:
+            List<int>: list of page ids of pages containing all words of the query
+        """
+        alpha = 0.5
+        beta = 0.5
+        
+        query_ids = set([self.word_id[word] for word in query]) # retrieve id of words in the query
+        query_norm = m.sqrt(sum(self.idf[i] for i in query_ids)) # compute norm of query as defined in TP3 as N_r
+
+        pages_id = [] # page_id of pages containing all words of query
+        for i in range(1, len(self.L)): # for all line of the matrix (for all pages)
+            tmp = cp.copy(query_ids)
+            sub_I = set(self.I[self.L[i-1] : self.L[i]]) # retrieve subset of I for page i-1
+            sub_C = self.C[self.L[i-1] : self.L[i]] # retrieve subsest of C page i-1
+            indexes = []
+            for index, wordID in enumerate(sub_I):
+                if wordID in tmp:
+                    indexes.append(index)
+                    tmp.remove(wordID)
+                    if not tmp: # tmp empty, all words of query are in the page, compute s(d,r)
+                        f_dr = 0
+                        for k in (indexes): # index of word of query in sub_C (same indexation as sub_I)
+                            f_dr += sub_C[k] # sum normalised TF-IDF
+                        f_dr /= query_norm
+                        pages_id.append((i-1, alpha*f_dr + beta*p[i-1]))
+            # if query_ids.issubset(page_content): # check if all element of query_ids are in page_content
+
+        return sorted(pages_id, key=lambda x: x[1], reverse=True) # Reverse sort by score
 # word_page_CLI = Word_Page_CLI("./data/pages/wikiprocess.txt")
 
 # with open('data/word_page_CLI.pickle', 'rb') as f:
@@ -138,3 +175,6 @@ class Word_Page_CLI():
     # print(len(word_page_CLI.C))
     # print(len(word_page_CLI.L))
     # print(len(word_page_CLI.I))
+
+# Test simple_query
+# print(word_page_CLI.simple_query(["autriche", "forme", "long", "république", "autrich", "état", "fédéral", "europe", "central", "pays", "sans"]))

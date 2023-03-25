@@ -10,7 +10,7 @@ class Link_CLI():
             param (string or List<List<Float>>): either path to file or matrix to convert to CLI
             fromFile (boolean): True if creating matrix from file, else from matrix
         """
-        if fromFile:
+        if fromFile: # compute CLI from file
             self.C = []
             self.L = [0] # initialized with 0 since the first row of the matrix start at index 0 of self.C
             self.I = []
@@ -35,15 +35,14 @@ class Link_CLI():
 
                         # Update L matrix (row)
                         self.L.append(len(self.C)) # an entire row of the matrix has been processed, so the next value is in a new row
+            print("Computing pagerank")
+            self.pagerank(1/7, 200)
             
             with open('data/link_CLI.pickle', 'wb') as f:
                 # Pickle the 'data' dictionary using the highest protocol available.
                 pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
             
-            print(self.pagerank_compute_best_iterations())
-            
-            
-        else:
+        else: # compute CLI from matrix
             self.C = []
             self.L = []
             self.I = []
@@ -83,7 +82,7 @@ class Link_CLI():
         return P
 
 
-    def pagerank(self, k): # k = 200 puis essayer d'autres valeurs
+    def pagerank(self, epsilon, k):
         """
         Compute pagerank according to algorithm defined in Exercice 3 of TP2
 
@@ -93,14 +92,13 @@ class Link_CLI():
         Returns:
             _type_: _description_
         """
-        epsilon = 1/7
         n = len(self.L)-1
         v = np.full(n, 1/n)
         for _ in range(k):
             v = self.compute_pi(epsilon, v)
         print(sum(v))
         self.v = v
-        with open('data/page_rank.pickle', 'wb') as f:
+        with open(f'data/pagerank{k}.pickle', 'wb') as f:
             pickle.dump(v, f, pickle.HIGHEST_PROTOCOL)
     
     def pagerank_compute_best_iterations(self, tol=0.001, err=1e-6, max_iter=1000):
@@ -119,11 +117,12 @@ class Link_CLI():
         n = len(self.L)-1
         v = np.full(n, 1/n)
 
-        iter = 190
+        iter = 0
         err_prev = 0
         while iter < max_iter:
             if iter % 50 == 0:
                 print(f"{iter} itérations")
+                print(f"sum v : {sum(v)}")
                 with open(f'data/pagerank{iter}.pickle', 'wb') as f:
                     pickle.dump(v, f, pickle.HIGHEST_PROTOCOL)
             v_next = self.compute_pi(epsilon, v)
@@ -137,7 +136,55 @@ class Link_CLI():
         with open('data/pagerank.pickle', 'wb') as f:
             pickle.dump(v, f, pickle.HIGHEST_PROTOCOL)
         return iter
+    
+    def pagerank_compute_best_params(self, tol=0.001, err=1e-6, max_iter=1000):
+        """
+        Compute the appropriate number of iterations and epsilon for pagerank according to a tolerance and error thresholds
 
+        Args:
+            tol (float, optional): tolerance threshold. Defaults to 0.001.
+            err (type, optional): error threshold. Defaults to 1e-6.
+            max_iter (int, optional): maximum number of iterations. Defaults to 1000.
+
+        Returns:
+            iter: number of iterations
+            epsilon: best epsilon value
+        """
+        n = len(self.L) - 1
+        v = np.full(n, 1 / n)
+
+        epsilon_list = [0.1, 1/7, 0.2, 0.8, 0.85, 0.9]
+        best_epsilon = None
+        best_iter = None
+        best_err = float('inf')
+
+        for epsilon in epsilon_list:
+            v_new = v.copy()
+            iter = 0
+            err_prev = 0
+            while iter < max_iter:
+                if iter % 50 == 0:
+                    print(f"{iter} itérations")
+                    print(f"sum v : {sum(v_new)}")
+                    with open(f"data/pagerank_e{epsilon}_i{iter}.pickle", 'wb') as f:
+                        pickle.dump(v_new, f, pickle.HIGHEST_PROTOCOL)
+                v_prev = v_new.copy()
+                v_new = self.compute_pi(epsilon, v_prev)
+                err = np.linalg.norm(v_new - v_prev, 1)
+                if err_prev and abs(err - err_prev) < tol:
+                    break
+                iter += 1
+                err_prev = err
+            if err < best_err:
+                best_epsilon = epsilon
+                best_iter = iter
+                best_err = err
+
+        self.v = v_new
+        with open(f"data/pagerank_e{best_epsilon}_i{best_iter}.pickle", 'wb') as f:
+            pickle.dump(v_new, f, pickle.HIGHEST_PROTOCOL)
+
+        return best_iter, best_epsilon
 
 # Exemple
 
@@ -160,21 +207,24 @@ class Link_CLI():
 
 
 # Create CLI Matrix on page corpus
+# link_CLI = Link_CLI("data/pages/wikiprocessnew.txt")
+# print(f"len of C : {len(link_CLI.C)}") # 6 159 228 -> 6 148 125 (nb after deleting links to page_id > max_id(pages))
+# print(f"len of L : {len(link_CLI.L)}") # 195 078 -> 195 078
+# print(f"len of I : {len(link_CLI.I)}") # 6 159 228 -> 6 148 125
+# print(f"sum of pagerank : {sum(link_CLI.v)}")
 
-mat = Link_CLI("data/wikiprocess.txt")
-print(f"len of C : {len(mat.C)}") # 6 159 228
-print(f"len of L : {len(mat.L)}") # 195 078
-print(f"len of I : {len(mat.I)}") # 6 159 228
-print(f"Sum pagerank ; {sum(mat.v)}")
 
 # with open('data/link_CLI.pickle', 'rb') as f:
-#     link_CLI = pickle.load(f)
-    # print(len(word_page_CLI.C))
-    # print(len(word_page_CLI.L))
-    # print(len(word_page_CLI.I))
+    # link_CLI = pickle.load(f)
+    # print(f"len of C : {len(link_CLI.C)}")
+    # print(f"len of L : {len(link_CLI.L)}")
+    # print(f"len of I : {len(link_CLI.I)}")
+    # print(f"sum of pagerank : {sum(link_CLI.v)}")
 
 # with open('data/pagerank500.pickle', 'rb') as f:
 #     page_rank = pickle.load(f)
 #     print(sum(page_rank))
 
-# print(link_CLI.pagerank_compute_best_iterations())
+# print(link_CLI.pagerank_compute_best_iterations()) # episolon = 1/7 --> 7
+# print(link_CLI.pagerank_compute_best_params())
+# link_CLI.pagerank(200)
