@@ -1,2 +1,3 @@
 /data/pages
 __pycache__
+/data/word_page_CLI.pickle
