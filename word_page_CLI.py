@@ -131,87 +131,6 @@ class Word_Page_CLI():
                 
         return set([item[0] for item in counts.most_common(20000)]) # item is a tuple (word, nb_occurence), convert to set because more efficient to test existence
 
-    def compute_pi(self, epsilon, v):
-        """
-        Multiplication between v and CLI matrix (one iteration of pagerank)
-
-        Args:
-            epsilon (float): epsilon value
-            v (List<float>): vector
-
-        Returns:
-            List<float>: vector
-        """
-        n = len(self.L)-1
-        P = np.zeros(n)
-        somme = 0
-        for i in range(0, n):
-            for j in range(self.L[i], self.L[i+1]):
-                P[self.I[j]] += self.C[j] * v[i] # ou bien remplacer C[j] par 1/ L[i+1] - L[i]
-            if self.L[i] == self.L[i+1]:
-                somme += v[i]/n
-        for k in range(0, n): 
-            P[k] += somme
-            P[k] = (1 - epsilon) * P[k] + epsilon/n
-        return P
-
-
-    def pagerank(self, k): # k = 200 puis essayer d'autres valeurs
-        """
-        Compute pagerank according to algorithm defined in Exercice 3 of TP2
-
-        Args:
-            k (int): number of iterations
-
-        Returns:
-            _type_: _description_
-        """
-        epsilon = 1/7
-        n = len(self.L)-1
-        v = np.full(n, 1/n)
-        for _ in range(k):
-            v = self.compute_pi(epsilon, v)
-        print(sum(v))
-        self.v = v
-        with open('data/page_rank.pickle', 'wb') as f:
-            pickle.dump(v, f, pickle.HIGHEST_PROTOCOL)
-    
-    def pagerank_compute_best_iterations(self, v, tol=0.001, err=1e-6, max_iter=1000):
-        """
-        Compute the appropriate number of iterations for pagerank according to a tolerance and error thresholds
-
-        Args:
-            tol (float, optional): tolerance threshold. Defaults to 0.001.
-            err (_type_, optional): error threshold. Defaults to 1e-6.
-            max_iter (int, optional): maximum number of iterations. Defaults to 1000.
-
-        Returns:
-            iter: number of iterations
-        """
-        epsilon = 1/7
-        n = len(self.L)-1
-        v = v
-
-        iter = 190
-        err_prev = 0
-        while iter < max_iter:
-            if iter % 50 == 0:
-                print(f"{iter} itérations")
-                with open(f'data/pagerank{iter}.pickle', 'wb') as f:
-                    pickle.dump(v, f, pickle.HIGHEST_PROTOCOL)
-            v_next = self.compute_pi(epsilon, v)
-            err = np.linalg.norm(v_next - v, 1)
-            if err_prev and abs(err - err_prev) < tol:
-                break
-            v = v_next
-            iter += 1
-            err_prev = err
-        self.v = v
-        with open('data/pagerank.pickle', 'wb') as f:
-            pickle.dump(v, f, pickle.HIGHEST_PROTOCOL)
-        return iter
-
-
 # word_page_CLI = Word_Page_CLI("./data/pages/wikiprocess.txt")
 
 # with open('data/word_page_CLI.pickle', 'rb') as f:
@@ -219,9 +138,3 @@ class Word_Page_CLI():
     # print(len(word_page_CLI.C))
     # print(len(word_page_CLI.L))
     # print(len(word_page_CLI.I))
-
-with open('data/pagerank500.pickle', 'rb') as f:
-    page_rank = pickle.load(f)
-    print(sum(page_rank))
-
-# print(word_page_CLI.pagerank_compute_best_iterations(page_rank))
