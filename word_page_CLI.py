@@ -83,6 +83,7 @@ class Word_Page_CLI():
             idf = []
             for i in range(len(keywords)):
                 idf.append(m.log10(self.nb_pages / self.I.count(i)))  # self.I.count(i) is the number of value at the column of word of id i
+                processed += 1
                 if processed % tenth_iteration == 0:
                         print(f"Computing IDF has processed {(processed/nb_iteration)*100:.2f}% of its iteration")
 
@@ -96,6 +97,7 @@ class Word_Page_CLI():
                 if i >= self.L[page_id+1]: # i is higher 
                     page_id += 1
                 self.C[i] = self.C[i] * idf[self.I[i]] / page_norm[page_id]
+                processed += 1
                 if processed % tenth_iteration == 0:
                         print(f"Computing TF-IDF has processed {(processed/nb_iteration)*100:.2f}% of its iteration")
 
