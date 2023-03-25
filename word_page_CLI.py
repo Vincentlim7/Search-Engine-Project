@@ -6,6 +6,8 @@ from itertools import islice
 from collections import defaultdict, Counter, OrderedDict
 import numpy as np
 import copy as cp
+from nltk.corpus import stopwords
+import spacy
 
 class Word_Page_CLI():
     def __init__(self, filename):
@@ -15,6 +17,8 @@ class Word_Page_CLI():
         Args:
             filename (string): path to file containing wikipedia pages
         """
+        self.nlp = spacy.load('fr_core_news_md')
+        self.STOPWORDS = set(stopwords.words('french'))
         self.nb_pages = 195077
         self.tenth_pages = self.nb_pages // 10
 
@@ -138,9 +142,11 @@ class Word_Page_CLI():
         Returns:
             List<int>: list of page ids of pages containing all words of the query
         """
-        alpha = 0.5
-        beta = 0.5
-        
+        alpha = 0.7
+        beta = 0.3
+        print(query)
+        query = self.text_processing(query)
+        print(query)
         query_ids = set([self.word_id[word] for word in query]) # retrieve id of words in the query
         query_norm = m.sqrt(sum(self.idf[i] for i in query_ids)) # compute norm of query as defined in TP3 as N_r
 
@@ -163,3 +169,25 @@ class Word_Page_CLI():
             # if query_ids.issubset(page_content): # check if all element of query_ids are in page_content
 
         return sorted(pages_id, key=lambda x: x[1], reverse=True) # Reverse sort by score
+
+    def text_processing(self, words):
+        """
+        Delete stop words
+        Text lemmatization
+
+        Args:
+            text (String): text to process
+
+        Returns:
+            List<String>: text after eliminating stopwords and lemmatization
+        """
+
+
+        # Deleting stopwords
+        cleaned_words = " ".join([word for word in words if word not in self.STOPWORDS])
+
+        # Lemmatization
+        doc = self.nlp(cleaned_words)
+        lemmatized = [token.lemma_.lower() for token in doc]
+
+        return lemmatized

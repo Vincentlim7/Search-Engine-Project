@@ -55,6 +55,6 @@ if __name__=="__main__":
     # print(link_CLI.pagerank_compute_best_params())
     # link_CLI.pagerank(200)
 
-    query_res = word_page_CLI.simple_query(["autriche", "forme", "long", "république", "autrich", "état", "fédéral", "europe", "central", "pays", "sans"], pagerank)
+    query_res = word_page_CLI.simple_query(["Autriche", "forme", "long", "république", "autrich", "état", "fédéral", "europe", "central", "pays", "sans"], pagerank)
     for page_id, score in query_res:
         print(f"{title_map[page_id]} : {score}")
