@@ -61,11 +61,6 @@ class Word_Page_CLI():
                 processed_lines += 1
                 if processed_lines % self.tenth_pages == 0:
                     print(f"word_page_CLI() has processed {(processed_lines/self.nb_pages)*100:.2f}% of the file")
-
-
-            # Compute TF as defined in TP1, Exercice 8.1
-            # for i in range(len(self.C)): # for each word
-            #     self.C[i] = 1 + m.log10(self.C[i]) # Compute TF(word,page) as defined in 8.1
                 
             # Compute norm vector as defined in 8.2
             print("Computing norms")
@@ -168,13 +163,3 @@ class Word_Page_CLI():
             # if query_ids.issubset(page_content): # check if all element of query_ids are in page_content
 
         return sorted(pages_id, key=lambda x: x[1], reverse=True) # Reverse sort by score
-# word_page_CLI = Word_Page_CLI("./data/pages/wikiprocess.txt")
-
-# with open('data/word_page_CLI.pickle', 'rb') as f:
-    # word_page_CLI = pickle.load(f)
-    # print(len(word_page_CLI.C))
-    # print(len(word_page_CLI.L))
-    # print(len(word_page_CLI.I))
-
-# Test simple_query
-# print(word_page_CLI.simple_query(["autriche", "forme", "long", "république", "autrich", "état", "fédéral", "europe", "central", "pays", "sans"]))

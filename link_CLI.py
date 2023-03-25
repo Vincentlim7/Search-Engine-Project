@@ -37,7 +37,7 @@ class Link_CLI():
                         self.L.append(len(self.C)) # an entire row of the matrix has been processed, so the next value is in a new row
             print("Computing pagerank")
             self.pagerank(1/7, 200)
-            
+
             with open('data/link_CLI.pickle', 'wb') as f:
                 # Pickle the 'data' dictionary using the highest protocol available.
                 pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
@@ -87,10 +87,8 @@ class Link_CLI():
         Compute pagerank according to algorithm defined in Exercice 3 of TP2
 
         Args:
+            epsilon (float): damping factor
             k (int): number of iterations
-
-        Returns:
-            _type_: _description_
         """
         n = len(self.L)-1
         v = np.full(n, 1/n)
@@ -185,46 +183,3 @@ class Link_CLI():
             pickle.dump(v_new, f, pickle.HIGHEST_PROTOCOL)
 
         return best_iter, best_epsilon
-
-# Exemple
-
-# M1 = [[0, 3, 5, 8], [1, 0, 2, 0], [0, 0, 0, 0], [0, 3, 0, 0]]
-# M2 = [[1, 0, 0, 2], [0, 0, 3, 0], [0, 0, 0, 0], [4, 0, 0, 5]]
-
-# mat = CLI_Matrix(M1, False)
-# print(mat.C)
-# print(mat.L)
-# print(mat.I)
-# print("\n ----------- \n")
-
-# mat = CLI_Matrix(M2, False)
-# print(mat.C)
-# print(mat.L)
-# print(mat.I)
-# print("\n ----------- \n")
-
-
-
-
-# Create CLI Matrix on page corpus
-# link_CLI = Link_CLI("data/pages/wikiprocessnew.txt")
-# print(f"len of C : {len(link_CLI.C)}") # 6 159 228 -> 6 148 125 (nb after deleting links to page_id > max_id(pages))
-# print(f"len of L : {len(link_CLI.L)}") # 195 078 -> 195 078
-# print(f"len of I : {len(link_CLI.I)}") # 6 159 228 -> 6 148 125
-# print(f"sum of pagerank : {sum(link_CLI.v)}")
-
-
-# with open('data/link_CLI.pickle', 'rb') as f:
-    # link_CLI = pickle.load(f)
-    # print(f"len of C : {len(link_CLI.C)}")
-    # print(f"len of L : {len(link_CLI.L)}")
-    # print(f"len of I : {len(link_CLI.I)}")
-    # print(f"sum of pagerank : {sum(link_CLI.v)}")
-
-# with open('data/pagerank500.pickle', 'rb') as f:
-#     page_rank = pickle.load(f)
-#     print(sum(page_rank))
-
-# print(link_CLI.pagerank_compute_best_iterations()) # episolon = 1/7 --> 7
-# print(link_CLI.pagerank_compute_best_params())
-# link_CLI.pagerank(200)
