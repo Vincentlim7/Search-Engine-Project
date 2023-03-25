@@ -1,5 +1,5 @@
 import numpy as np
-import matrix as ut
+import link_CLI as ut
 # calculer C L I
 #exercice 1 tp2
 # epsilon = 1/7
