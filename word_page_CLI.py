@@ -65,23 +65,39 @@ class Word_Page_CLI():
                 
             # Compute norm vector as defined in 8.2
             print("Computing norms")
+            processed = 0
+            nb_iteration = len(self.L)
+            tenth_iteration = nb_iteration // 10
             for i in range(1, len(self.L)):
                 norm = sum(self.C[j]**2 for j in range(self.L[i-1], self.L[i]))
                 page_norm[i-1] = m.sqrt(norm)
+                processed += 1
+                if processed % tenth_iteration == 0:
+                    print(f"Computing norms has processed {(processed/nb_iteration)*100:.2f}% of its iteration")
 
             # Compute IDF
             print("Computing IDF")
+            processed = 0
+            nb_iteration = len(keywords)
+            tenth_iteration = nb_iteration // 10
             idf = []
             for i in range(len(keywords)):
                 idf.append(m.log10(self.nb_pages / self.I.count(i)))  # self.I.count(i) is the number of value at the column of word of id i
-            
+                if processed % tenth_iteration == 0:
+                        print(f"Computing IDF has processed {(processed/nb_iteration)*100:.2f}% of its iteration")
+
             # Compute TF-IDF as defined in 8.4
             print("Computing TF-IDF")
+            processed = 0
+            nb_iteration = len(self.C)
+            tenth_iteration = nb_iteration // 10
             page_id = 0
             for i in range(len(self.C)): # i is the index of the examined cell in C
                 if i >= self.L[page_id+1]: # i is higher 
                     page_id += 1
                 self.C[i] = self.C[i] * idf[self.I[i]] / page_norm[page_id]
+                if processed % tenth_iteration == 0:
+                        print(f"Computing TF-IDF has processed {(processed/nb_iteration)*100:.2f}% of its iteration")
 
         with open('data/data.pickle', 'wb') as f:
             pickle.dump(self, f, pickle.HIGHEST_PROTOCOL)
@@ -110,7 +126,7 @@ class Word_Page_CLI():
                 
         return set([item[0] for item in counts.most_common(20000)]) # item is a tuple (word, nb_occurence), convert to set because more efficient to test existence
 
-word_page_CLI = Word_Page_CLI("./data/pages/wikiprocess100.txt")
+word_page_CLI = Word_Page_CLI("./data/pages/wikiprocess.txt")
 
 # with open('data/data.pickle', 'rb') as f:
 #     word_page_CLI = pickle.load(f)
