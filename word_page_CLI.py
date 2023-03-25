@@ -3,7 +3,7 @@ from collections import Counter
 import pickle
 import time
 from itertools import islice
-from collections import defaultdict, Counter
+from collections import defaultdict, Counter, OrderedDict
 
 class Word_Page_CLI():
     def __init__(self, filename):
@@ -17,12 +17,14 @@ class Word_Page_CLI():
         self.nb_pages = 195077
         self.tenth_pages = self.nb_pages // 10
 
-        self.word_id = dict() # associate a word to its column for the CLI matrix
+        self.word_id = OrderedDict() # associate a word to its column for the CLI matrix
+                                     # OrderedDict so we can iterate on self.word_id.val() when computing IDF
         self.C = []
         self.L = [0] # initialized with 0 since the first row of the matrix start at index 0 of self.C
         self.I = []
 
         page_norm = {} # dictionnaire qui associe Ã  chaque page sa norme: {page : norm Nd}, used to store the pages' norm
+        word_nb_page = [0 for i in range(len(keywords))] # nb of page containing word (used to compute IDF)
         page_id = 0
         word_id_counter = 0
         processed_lines = 0
@@ -43,9 +45,10 @@ class Word_Page_CLI():
                             word_id_counter += 1
 
                         if word not in C_bis_index:
-                            C_bis_index[word] = len(C_bis)
+                            C_bis_index[word] = len(C_bis) # give its index in C_bis
                             C_bis.append(1) 
                             self.I.append(self.word_id[word])
+                            word_nb_page[self.word_id[word]] += 1 # increse nb of page containing word
                         else:
                             C_bis[C_bis_index[word]] += 1
         
@@ -81,8 +84,8 @@ class Word_Page_CLI():
             nb_iteration = len(keywords)
             tenth_iteration = nb_iteration // 10
             idf = []
-            for i in range(len(keywords)):
-                idf.append(m.log10(self.nb_pages / self.I.count(i)))  # self.I.count(i) is the number of value at the column of word of id i
+            for i in self.word_id.values():
+                idf.append(m.log10(self.nb_pages / word_nb_page[i]))  # idf will have the same order as self.word_id since its a OrderedDict 
                 processed += 1
                 if processed % tenth_iteration == 0:
                         print(f"Computing IDF has processed {(processed/nb_iteration)*100:.2f}% of its iteration")
